@@ -5,10 +5,12 @@ from xmlrpc.client import Boolean
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ServerDisconnectedError, ClientOSError
+from asyncio.exceptions import TimeoutError
 
 from bond_async.bond_type import BondType
 
 from .action import Action
+import asyncio
 
 
 class Bond:
@@ -168,7 +170,8 @@ class Bond:
         else:
             try:
                 return await handler(self._session)
-            except (ClientOSError, ServerDisconnectedError):
+            except (ClientOSError, ServerDisconnectedError, TimeoutError):
                 # bond has a short connection close time
                 # so we need to retry if we idled for a bit
+                await asyncio.sleep(0.1)
                 return await handler(self._session)
